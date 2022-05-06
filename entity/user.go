@@ -39,6 +39,7 @@ type SignedDetails struct {
 type User2 struct {
 	Uid         string `json:"uid"`
 	Email       string `json:"email"`
+	Password    string `json:"password"`
 	PhoneNumber string `json:"phonenumber"`
 	DisplayName string `json:"displayname"`
 	PhotoURL    string `json:"photourl"`

@@ -34,7 +34,7 @@ func CreateUser(ctx *gin.Context) {
 		return
 	}
 	// send the response message
-	ctx.JSON(http.StatusCreated, gin.H{"success": fmt.Sprint("User %s was successfully created", user.DisplayName)})
+	ctx.JSON(http.StatusCreated, gin.H{"success": fmt.Sprintf("User %s was successfully created", user.DisplayName)})
 }
 
 /* Create user handler */

@@ -14,70 +14,6 @@ import (
 // Create an unexported global variable to hold the firebase connection pool.
 var client *auth.Client = service.FirebaseInstance()
 
-// // Create an unexported global variable to hold the collection connection pool.
-// var collection *mongo.Collection = database.OpenCollection(client, "user")
-
-// // Create one user into DB
-// func CreateUser(user entity.User) error {
-// 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 	defer cancel()
-
-// 	// e-mail check
-// 	if err := emailVerify(ctx, *user.Email); err != nil {
-// 		return err
-// 	}
-// 	// phone check
-// 	if err := phoneVerify(ctx, *user.Phone); err != nil {
-// 		return err
-// 	}
-
-// 	count, err := collection.CountDocuments(ctx, bson.M{"phone": user.Phone})
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		return fmt.Errorf("error occured while checking for the phone")
-// 	} else if count > 0 {
-// 		return fmt.Errorf("this phone has already been registered")
-// 	}
-// 	password := HashPassword(*user.Password)
-// 	time, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-// 	// get a unique userID
-// 	id := primitive.NewObjectID()
-// 	user.UID = id.Hex()
-// 	token, refreshToken, _ := GenerateAllTokens(user)
-
-// 	newuser := entity.User{
-// 		ID:           id,
-// 		UserName:     user.UserName,
-// 		FirstName:    user.FirstName,
-// 		LastName:     user.LastName,
-// 		Password:     &password,
-// 		Email:        user.Email,
-// 		Phone:        user.Phone,
-// 		UserType:     user.UserType,
-// 		Picture:      user.Picture,
-// 		Token:        &token,
-// 		RefreshToken: &refreshToken,
-// 		Created:      time,
-// 		Updated:      time,
-// 		UID:          user.UID,
-// 	}
-// 	_, err = collection.InsertOne(ctx, newuser)
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		return fmt.Errorf("unable to create user")
-// 	}
-
-// 	return nil
-// }
-
-type User2 struct {
-	Uid         string `json:"uid"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phonenumber"`
-	DisplayName string `json:"displayname"`
-	PhotoURL    string `json:"photourl"`
-}
-
 // Create one user into Firebase
 func CreateUser(user entity.User2) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -86,6 +22,7 @@ func CreateUser(user entity.User2) error {
 	params := (&auth.UserToCreate{}).
 		Email(user.Email).
 		PhoneNumber(user.PhoneNumber).
+		Password(user.Password).
 		DisplayName(user.DisplayName).
 		PhotoURL(user.PhotoURL)
 
@@ -96,23 +33,6 @@ func CreateUser(user entity.User2) error {
 	}
 	return nil
 }
-
-// /* Create user function */
-// func (server *UserManagementServer) CreateUser(ctx context.Context, u *pb.User) (*pb.UserID, error) {
-// 	params := (&auth.UserToCreate{}).
-// 		Email(u.Email).
-// 		PhoneNumber(u.Phone).
-// 		DisplayName(u.DisplayName).
-// 		PhotoURL(u.PhotoURL)
-
-// 	urec, err := server.client.CreateUser(ctx, params)
-// 	if err != nil {
-// 		log.Println("error creating user: ", err.Error())
-// 		return nil, err
-// 	}
-// 	log.Println("Successfully created user: ", urec.UID)
-// 	return &pb.UserID{Uid: urec.UID}, nil
-// }
 
 // /* Update user function */
 // func (server *UserManagementServer) UpdateUser(ctx context.Context, u *pb.User) (*pb.User, error) {
