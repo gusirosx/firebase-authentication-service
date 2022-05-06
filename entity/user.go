@@ -35,6 +35,15 @@ type SignedDetails struct {
 	jwt.StandardClaims
 }
 
+// Athena user struct
+type User2 struct {
+	Uid         string `json:"uid"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phonenumber"`
+	DisplayName string `json:"displayname"`
+	PhotoURL    string `json:"photourl"`
+}
+
 // 	 "permissions": {
 // 	  "group_permissions": null,
 // 	  "user_permissions": []

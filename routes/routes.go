@@ -2,7 +2,6 @@ package routes
 
 import (
 	"golang-jwt/handlers"
-	"golang-jwt/middleware"
 	"log"
 	"net/http"
 
@@ -40,27 +39,32 @@ func initializeRoutes(router *gin.Engine) {
 	router.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Page not found"})
 	})
+
+	//Firebase
+
 	//Group user related routes together
 	userRoutes := router.Group("/users")
-	AuthRoutes(userRoutes)
+	// AuthRoutes(userRoutes)
 	UserRoutes(userRoutes)
 }
 
-func AuthRoutes(routes *gin.RouterGroup) {
-	// Handle signup requests at /users/signup
-	routes.POST("/signup", handlers.Signup)
-	// Handle login requests at /users/login
-	routes.POST("/login", handlers.Login)
-}
+// func AuthRoutes(routes *gin.RouterGroup) {
+// 	// Handle signup requests at /users/signup
+// 	routes.POST("/signup", handlers.Signup)
+// 	// Handle login requests at /users/login
+// 	routes.POST("/login", handlers.Login)
+// }
 
 func UserRoutes(routes *gin.RouterGroup) {
-	routes.Use(middleware.Authenticate())
-	// Read users at /users
-	routes.GET("", handlers.GetUsers)
-	// Update users at /users
-	routes.PUT("/:user_id", handlers.UpdateUser)
-	// Delete users at /users
-	routes.DELETE("/:user_id", handlers.DeleteUser)
-	// Read users at /users/ID
-	routes.GET("/:user_id", handlers.GetUser)
+	// Create user at /users
+	routes.POST("", handlers.CreateUser)
+	// //routes.Use(middleware.Authenticate())
+	// // Read users at /users
+	// routes.GET("", handlers.GetUsers)
+	// // Update users at /users
+	// routes.PUT("/:user_id", handlers.UpdateUser)
+	// // Delete users at /users
+	// routes.DELETE("/:user_id", handlers.DeleteUser)
+	// // Read users at /users/ID
+	// routes.GET("/:user_id", handlers.GetUser)
 }
