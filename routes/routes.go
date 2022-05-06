@@ -55,16 +55,29 @@ func initializeRoutes(router *gin.Engine) {
 // 	routes.POST("/login", handlers.Login)
 // }
 
+// func UserRoutes(routes *gin.RouterGroup) {
+// 	// Create user at /users
+// 	routes.POST("", handlers.CreateUser)
+// 	// //routes.Use(middleware.Authenticate())
+// 	// // Read users at /users
+// 	// routes.GET("", handlers.GetUsers)
+// 	// // Update users at /users
+// 	// routes.PUT("/:user_id", handlers.UpdateUser)
+// 	// // Delete users at /users
+// 	// routes.DELETE("/:user_id", handlers.DeleteUser)
+// 	// // Read users at /users/ID
+// 	// routes.GET("/:user_id", handlers.GetUser)
+// }
+
 func UserRoutes(routes *gin.RouterGroup) {
+	// Read users at /users
+	//routes.GET("", handlers.GetUsers)
+	// Read users at /users/ID
+	routes.GET("/:id", handlers.GetUser)
 	// Create user at /users
 	routes.POST("", handlers.CreateUser)
-	// //routes.Use(middleware.Authenticate())
-	// // Read users at /users
-	// routes.GET("", handlers.GetUsers)
-	// // Update users at /users
-	// routes.PUT("/:user_id", handlers.UpdateUser)
-	// // Delete users at /users
-	// routes.DELETE("/:user_id", handlers.DeleteUser)
-	// // Read users at /users/ID
-	// routes.GET("/:user_id", handlers.GetUser)
+	// Update users at /users
+	//routes.PUT("/:id", handlers.UpdateUser)
+	// Delete users at /users
+	//routes.DELETE("/:id", handlers.DeleteUser)
 }

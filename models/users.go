@@ -3,19 +3,61 @@ package models
 import (
 	"context"
 	"fmt"
-	"golang-jwt/entity"
 	"golang-jwt/service"
 	"log"
 	"time"
 
 	"firebase.google.com/go/v4/auth"
+	"github.com/gin-gonic/gin"
 )
 
 // Create an unexported global variable to hold the firebase connection pool.
 var client *auth.Client = service.FirebaseInstance()
 
+// Get one user from the DB by its id
+func GetUser(ctx *gin.Context) (User, int, error) {
+	var urec *auth.UserRecord
+	var err error
+	values := ctx.Request.URL.Query()
+
+	// get the userID from the ctx params, key is "id"
+	if userID := ctx.Param("id"); userID == "" {
+		err = fmt.Errorf("no user ID was provided")
+	} else {
+		urec, err = client.GetUser(ctx, userID)
+	}
+
+	if _, ok := values["email"]; ok {
+		urec, err = client.GetUserByEmail(ctx, values["email"][0])
+
+	} else if _, ok := values["phoneNumber"]; ok {
+		urec, err = client.GetUserByPhoneNumber(ctx, "+"+values["phoneNumber"][0])
+	} else {
+		err = fmt.Errorf("invalid search parameters")
+	}
+
+	if err != nil {
+		return User{}, 400, err
+	}
+	// Assemble the payload for client response
+	user := User{
+		Uid:         urec.UID,
+		Email:       urec.Email,
+		PhoneNumber: urec.PhoneNumber,
+		DisplayName: urec.DisplayName,
+		PhotoURL:    urec.PhotoURL}
+
+	return user, 200, nil
+}
+
+/* Get user by e-mail function */
+
+/* Get user by phone function */
+
+/* Get user by UID function */
+
 // Create one user into Firebase
-func CreateUser(user entity.User2) error {
+func CreateUser(user User) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
@@ -95,63 +137,6 @@ func CreateUser(user entity.User2) error {
 // 	return users, nil
 // }
 
-// /* Get user by UID function */
-// func (server *UserManagementServer) GetUserByUID(ctx context.Context, u *pb.UserID) (*pb.User, error) {
-
-// 	urec, err := server.client.GetUser(ctx, u.Uid)
-// 	if err != nil {
-// 		log.Println("error getting user by UID: ", u.Uid, err.Error())
-// 		return nil, err
-// 	}
-// 	log.Println("Successfully fetched user data: ", urec.UID)
-// 	// Assemble the payload for client response
-// 	user := &pb.User{
-// 		Uid:         urec.UID,
-// 		Email:       urec.Email,
-// 		Phone:       urec.PhoneNumber,
-// 		DisplayName: urec.DisplayName,
-// 		PhotoURL:    urec.PhotoURL}
-// 	return user, nil
-// }
-
-// /* Get user by e-mail function */
-// func (server *UserManagementServer) GetUserByEmail(ctx context.Context, u *pb.UserEmail) (*pb.User, error) {
-
-// 	urec, err := server.client.GetUserByEmail(ctx, u.Email)
-// 	if err != nil {
-// 		log.Println("error getting user by email: ", u.Email, err.Error())
-// 		return nil, err
-// 	}
-// 	log.Println("Successfully fetched user data: ", urec.UID)
-// 	// Assemble the payload for client response
-// 	user := &pb.User{
-// 		Uid:         urec.UID,
-// 		Email:       urec.Email,
-// 		Phone:       urec.PhoneNumber,
-// 		DisplayName: urec.DisplayName,
-// 		PhotoURL:    urec.PhotoURL}
-// 	return user, nil
-// }
-
-// /* Get user by phone function */
-// func (server *UserManagementServer) GetUserByPhone(ctx context.Context, u *pb.UserPhone) (*pb.User, error) {
-
-// 	urec, err := server.client.GetUserByPhoneNumber(ctx, u.Phone)
-// 	if err != nil {
-// 		log.Println("error getting user by email: ", u.Phone, err.Error())
-// 		return nil, err
-// 	}
-// 	log.Println("Successfully fetched user data: ", urec.UID)
-// 	// Assemble the payload for client response
-// 	user := &pb.User{
-// 		Uid:         urec.UID,
-// 		Email:       urec.Email,
-// 		Phone:       urec.PhoneNumber,
-// 		DisplayName: urec.DisplayName,
-// 		PhotoURL:    urec.PhotoURL}
-// 	return user, nil
-// }
-
 // // Get all users from the DB by its id
 // func GetUsers(ctx *gin.Context) (response *mongo.Cursor, err error) {
 // 	recordPerPage, err := strconv.Atoi(ctx.Query("recordPerPage"))
@@ -180,21 +165,6 @@ func CreateUser(user entity.User2) error {
 // 		return
 // 	}
 // 	return
-// }
-
-// // Get one user from the DB by its id
-// func GetUser(UID string) (entity.User, error) {
-// 	var user entity.User
-// 	// Get a primitive ObjectID from a hexadecimal string
-// 	var queryCtx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 	defer cancel()
-
-// 	// Call the FindOne() method by passing BSON
-// 	if err := collection.FindOne(queryCtx, bson.M{"uid": UID}).Decode(&user); err != nil {
-// 		return entity.User{}, err
-// 	}
-
-// 	return user, nil
 // }
 
 // // Update one user from the DB by its id
