@@ -42,16 +42,8 @@ func initializeRoutes(router *gin.Engine) {
 
 	//Group user related routes together
 	userRoutes := router.Group("/users")
-	// AuthRoutes(userRoutes)
 	UserRoutes(userRoutes)
 }
-
-// func AuthRoutes(routes *gin.RouterGroup) {
-// 	// Handle signup requests at /users/signup
-// 	routes.POST("/signup", handlers.Signup)
-// 	// Handle login requests at /users/login
-// 	routes.POST("/login", handlers.Login)
-// }
 
 func UserRoutes(routes *gin.RouterGroup) {
 	// //routes.Use(middleware.Authenticate())

@@ -7,5 +7,5 @@ type User struct {
 	Password    string `json:"password,omitempty"`
 	PhoneNumber string `json:"phonenumber"`
 	DisplayName string `json:"displayname"`
-	PhotoURL    string `json:"photourl"`
+	PhotoURL    string `json:"photourl,omitempty"`
 }
