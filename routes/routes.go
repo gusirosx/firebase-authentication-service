@@ -40,8 +40,6 @@ func initializeRoutes(router *gin.Engine) {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": "Page not found"})
 	})
 
-	//Firebase
-
 	//Group user related routes together
 	userRoutes := router.Group("/users")
 	// AuthRoutes(userRoutes)
@@ -55,21 +53,8 @@ func initializeRoutes(router *gin.Engine) {
 // 	routes.POST("/login", handlers.Login)
 // }
 
-// func UserRoutes(routes *gin.RouterGroup) {
-// 	// Create user at /users
-// 	routes.POST("", handlers.CreateUser)
-// 	// //routes.Use(middleware.Authenticate())
-// 	// // Read users at /users
-// 	// routes.GET("", handlers.GetUsers)
-// 	// // Update users at /users
-// 	// routes.PUT("/:user_id", handlers.UpdateUser)
-// 	// // Delete users at /users
-// 	// routes.DELETE("/:user_id", handlers.DeleteUser)
-// 	// // Read users at /users/ID
-// 	// routes.GET("/:user_id", handlers.GetUser)
-// }
-
 func UserRoutes(routes *gin.RouterGroup) {
+	// //routes.Use(middleware.Authenticate())
 	// Read users at /users
 	routes.GET("", handlers.GetUsers)
 	// Read users at /users/ID

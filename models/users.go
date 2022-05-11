@@ -15,41 +15,6 @@ import (
 // Create an unexported global variable to hold the firebase connection pool.
 var client *auth.Client = service.FirebaseInstance()
 
-// Get one user from the DB by its id
-func GetUser(ctx *gin.Context) (User, int, error) {
-	var urec *auth.UserRecord
-	// var verror error
-	values := ctx.Request.URL.Query()
-
-	ID, err := getID(ctx)
-	if err == nil {
-		urec, err = client.GetUser(ctx, ID) // get the user by it's ID
-	} else if _, ok := values["email"]; ok { // get the user by it's email
-		urec, err = client.GetUserByEmail(ctx, values["email"][0])
-	} else if _, ok := values["phoneNumber"]; ok { // get the user by it's phone
-		urec, err = client.GetUserByPhoneNumber(ctx, "+"+values["phoneNumber"][0])
-	} else {
-		err = fmt.Errorf("invalid search parameters")
-	}
-	if err != nil {
-		return User{}, 400, err
-	}
-	// Assemble the payload for client response
-	user := User{
-		Uid:         urec.UID,
-		Email:       urec.Email,
-		PhoneNumber: urec.PhoneNumber,
-		DisplayName: urec.DisplayName,
-		PhotoURL:    urec.PhotoURL}
-
-	return user, 200, nil
-}
-
-/* Get user by e-mail function */
-
-/* Get user by phone function */
-
-/* Get user by UID function */
 // Get all users from firebase
 func GetUsers(ctx *gin.Context) ([]User, error) {
 	var users []User
@@ -74,6 +39,58 @@ func GetUsers(ctx *gin.Context) ([]User, error) {
 	}
 	log.Println("Successfully fetched users data")
 	return users, nil
+}
+
+// Get one user from the DB by a given parameter
+func GetUserByParams(ctx *gin.Context) (User, int, error) {
+	var urec *auth.UserRecord
+	var err error
+	values := ctx.Request.URL.Query()
+
+	if _, ok := values["email"]; ok { // get the user by it's email
+		urec, err = client.GetUserByEmail(ctx, values["email"][0])
+	} else if _, ok := values["phoneNumber"]; ok { // get the user by it's phone number
+		urec, err = client.GetUserByPhoneNumber(ctx, "+"+values["phoneNumber"][0])
+	} else {
+		err = fmt.Errorf("invalid search parameters")
+	}
+	if err != nil {
+		return User{}, 400, err
+	}
+	// Assemble the payload for client response
+	user := User{
+		Uid:         urec.UID,
+		Email:       urec.Email,
+		PhoneNumber: urec.PhoneNumber,
+		DisplayName: urec.DisplayName,
+		PhotoURL:    urec.PhotoURL}
+
+	return user, 200, nil
+}
+
+// Get one user from the DB by its id
+func GetUser(ctx *gin.Context) (User, int, error) {
+	var urec *auth.UserRecord
+	// get the userID from the ctx params, key is "id"
+	ID := ctx.Param("id")
+	if len(ID) == 0 {
+		return User{}, 400, fmt.Errorf("no user ID was provided")
+	}
+	// get the user by it's ID
+	urec, err := client.GetUser(ctx, ID)
+	if err != nil {
+		log.Println(err.Error())
+		return User{}, 500, fmt.Errorf("unable to retrieve user information")
+	}
+	// Assemble the payload for client response
+	user := User{
+		Uid:         urec.UID,
+		Email:       urec.Email,
+		PhoneNumber: urec.PhoneNumber,
+		DisplayName: urec.DisplayName,
+		PhotoURL:    urec.PhotoURL}
+
+	return user, 200, nil
 }
 
 // Create one user into Firebase

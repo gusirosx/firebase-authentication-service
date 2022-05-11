@@ -10,6 +10,12 @@ import (
 
 // GetUsers will return a list of all users
 func GetUsers(ctx *gin.Context) {
+	values := ctx.Request.URL.Query()
+	if len(values) != 0 {
+		GetUserByParams(ctx)
+		return
+	}
+
 	// call GetUsers to get all users response
 	response, err := models.GetUsers(ctx)
 	if err != nil {
@@ -18,6 +24,22 @@ func GetUsers(ctx *gin.Context) {
 	}
 	// send the response message
 	ctx.JSON(http.StatusOK, response)
+}
+
+// GetUser will return a specific user by a given parameter
+func GetUserByParams(ctx *gin.Context) {
+
+	// call GetUser to get the user
+	user, code, err := models.GetUserByParams(ctx)
+	if err != nil {
+		ctx.JSON(code, gin.H{"error": err.Error()})
+		return
+	}
+	// send the response message
+	ctx.JSON(code, gin.H{
+		"success": "User successfully retrieved",
+		"user":    user,
+	})
 }
 
 // GetUser will return a specific user
@@ -74,7 +96,10 @@ func UpdateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"success": "user was successfully updated"})
+	// send the response message
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": "user was successfully updated",
+		"user":    user})
 }
 
 func DeleteUser(ctx *gin.Context) {
