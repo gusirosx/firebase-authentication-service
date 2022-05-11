@@ -71,7 +71,7 @@ func initializeRoutes(router *gin.Engine) {
 
 func UserRoutes(routes *gin.RouterGroup) {
 	// Read users at /users
-	//routes.GET("", handlers.GetUsers)
+	routes.GET("", handlers.GetUsers)
 	// Read users at /users/ID
 	routes.GET("/:id", handlers.GetUser)
 	// Create user at /users
@@ -79,5 +79,5 @@ func UserRoutes(routes *gin.RouterGroup) {
 	// Update users at /users
 	//routes.PUT("/:id", handlers.UpdateUser)
 	// Delete users at /users
-	//routes.DELETE("/:id", handlers.DeleteUser)
+	routes.DELETE("/:id", handlers.DeleteUser)
 }

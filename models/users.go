@@ -9,6 +9,7 @@ import (
 
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/api/iterator"
 )
 
 // Create an unexported global variable to hold the firebase connection pool.
@@ -17,25 +18,19 @@ var client *auth.Client = service.FirebaseInstance()
 // Get one user from the DB by its id
 func GetUser(ctx *gin.Context) (User, int, error) {
 	var urec *auth.UserRecord
-	var err error
+	// var verror error
 	values := ctx.Request.URL.Query()
 
-	// get the userID from the ctx params, key is "id"
-	if userID := ctx.Param("id"); userID == "" {
-		err = fmt.Errorf("no user ID was provided")
-	} else {
-		urec, err = client.GetUser(ctx, userID)
-	}
-
-	if _, ok := values["email"]; ok {
+	ID, err := getID(ctx)
+	if err == nil {
+		urec, err = client.GetUser(ctx, ID) // get the user by it's ID
+	} else if _, ok := values["email"]; ok { // get the user by it's email
 		urec, err = client.GetUserByEmail(ctx, values["email"][0])
-
-	} else if _, ok := values["phoneNumber"]; ok {
+	} else if _, ok := values["phoneNumber"]; ok { // get the user by it's phone
 		urec, err = client.GetUserByPhoneNumber(ctx, "+"+values["phoneNumber"][0])
 	} else {
 		err = fmt.Errorf("invalid search parameters")
 	}
-
 	if err != nil {
 		return User{}, 400, err
 	}
@@ -55,6 +50,31 @@ func GetUser(ctx *gin.Context) (User, int, error) {
 /* Get user by phone function */
 
 /* Get user by UID function */
+// Get all users from firebase
+func GetUsers(ctx *gin.Context) ([]User, error) {
+	var users []User
+	iter := client.Users(ctx, "")
+	for {
+		urec, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			log.Println("error listing users:", err.Error())
+			return users, err
+		}
+		user := User{
+			Uid:         urec.UID,
+			Email:       urec.Email,
+			PhoneNumber: urec.PhoneNumber,
+			DisplayName: urec.DisplayName,
+			PhotoURL:    urec.PhotoURL,
+		}
+		users = append(users, user)
+	}
+	log.Println("Successfully fetched users data")
+	return users, nil
+}
 
 // Create one user into Firebase
 func CreateUser(user User) error {
@@ -72,6 +92,16 @@ func CreateUser(user User) error {
 	if err != nil {
 		log.Println(err.Error())
 		return fmt.Errorf("unable to create user")
+	}
+	return nil
+}
+
+// Delete one user from the DB by its id
+func DeleteUser(id string) error {
+	// Call the DeleteUser method by passing a valid userID
+	if err := client.DeleteUser(context.Background(), id); err != nil {
+		log.Println(err.Error())
+		return fmt.Errorf("unable to delete user")
 	}
 	return nil
 }
@@ -98,73 +128,6 @@ func CreateUser(user User) error {
 // 		DisplayName: urec.DisplayName,
 // 		PhotoURL:    urec.PhotoURL}
 // 	return user, nil
-// }
-
-// /* Delete user function */
-// func (server *UserManagementServer) DeleteUser(ctx context.Context, u *pb.UserID) (*pb.Empty, error) {
-// 	err := server.client.DeleteUser(ctx, u.Uid)
-// 	if err != nil {
-// 		log.Println("error deleting user: ", err.Error())
-// 		return nil, err
-// 	}
-// 	log.Println("Successfully deleting user: ", u.Uid)
-// 	return &pb.Empty{}, nil
-// }
-
-// /* List Users function */
-// func (server *UserManagementServer) GetUsers(ctx context.Context, u *pb.Empty) (*pb.UserList, error) {
-// 	var users *pb.UserList = &pb.UserList{}
-// 	iter := server.client.Users(ctx, "")
-// 	for {
-// 		u, err := iter.Next()
-// 		if err == iterator.Done {
-// 			break
-// 		}
-// 		if err != nil {
-// 			log.Println("error listing users:", err.Error())
-// 			return users, err
-// 		}
-// 		user := pb.User{
-// 			Uid:         u.UID,
-// 			Email:       u.Email,
-// 			Phone:       u.PhoneNumber,
-// 			DisplayName: u.DisplayName,
-// 			PhotoURL:    u.PhotoURL,
-// 		}
-// 		users.Users = append(users.Users, &user)
-// 	}
-// 	log.Println("Successfully fetched users data")
-// 	return users, nil
-// }
-
-// // Get all users from the DB by its id
-// func GetUsers(ctx *gin.Context) (response *mongo.Cursor, err error) {
-// 	recordPerPage, err := strconv.Atoi(ctx.Query("recordPerPage"))
-// 	if err != nil || recordPerPage < 1 {
-// 		recordPerPage = 10
-// 	}
-
-// 	startIndex, _ := strconv.Atoi(ctx.Query("startIndex"))
-// 	matchStage := bson.D{{Key: "$match", Value: bson.D{{}}}}
-// 	groupStage := bson.D{{Key: "$group", Value: bson.D{
-// 		{Key: "_id", Value: bson.D{{Key: "_id", Value: "null"}}},
-// 		{Key: "total_count", Value: bson.D{{Key: "$sum", Value: 1}}},
-// 		{Key: "data", Value: bson.D{{Key: "$push", Value: "$$ROOT"}}}}}}
-// 	projectStage := bson.D{
-// 		{Key: "$project", Value: bson.D{
-// 			{Key: "_id", Value: 0},
-// 			{Key: "total_count", Value: 1},
-// 			{Key: "user_items", Value: bson.D{
-// 				{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}}}}}}}
-
-// 	var queryCtx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 	defer cancel()
-// 	response, err = collection.Aggregate(queryCtx, mongo.Pipeline{matchStage, groupStage, projectStage})
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		return
-// 	}
-// 	return
 // }
 
 // // Update one user from the DB by its id
@@ -233,28 +196,5 @@ func CreateUser(user User) error {
 // 	// 	return fmt.Errorf("unable to update the user token's")
 // 	// }
 
-// 	return nil
-// }
-
-// // Delete one user from the DB by its id
-// func DeleteUser(id string) error {
-// 	var queryCtx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 	defer cancel()
-
-// 	// Declare a primitive ObjectID from a hexadecimal string
-// 	idPrimitive, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		return err
-// 	}
-
-// 	// Call the DeleteOne() method by passing BSON
-// 	res, err := collection.DeleteOne(queryCtx, bson.M{"_id": idPrimitive})
-// 	if err != nil {
-// 		log.Println(err.Error())
-// 		return fmt.Errorf("unable to delete user")
-// 	} else if res.DeletedCount == 0 {
-// 		return fmt.Errorf("there is no such user for be deleted")
-// 	}
 // 	return nil
 // }
