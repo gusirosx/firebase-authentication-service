@@ -56,6 +56,27 @@ func CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"success": fmt.Sprintf("User %s was successfully created", user.DisplayName)})
 }
 
+func UpdateUser(ctx *gin.Context) {
+	var user models.User
+
+	userID := ctx.Param("id")
+	if len(userID) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no user ID was provided"})
+		return
+	}
+	// Call BindJSON to bind the received JSON to user
+	if err := ctx.BindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := models.UpdateUser(userID, user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": "user was successfully updated"})
+}
+
 func DeleteUser(ctx *gin.Context) {
 
 	userID := ctx.Param("id")
@@ -70,75 +91,3 @@ func DeleteUser(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"success": "User was successfully deleted"})
 }
-
-// /* Update user handler */
-// func UpdateUser2(ctx *gin.Context) {
-
-// 	var user commons.User
-// 	// Call BindJSON to bind the received JSON to user
-// 	err := ctx.BindJSON(&user)
-// 	if err != nil {
-// 		err := fmt.Errorf("update user: %v", err)
-// 		payload.Message = err.Error()
-// 		logger.Log(entry.New(payload, ctx, logging.Error, http.StatusBadRequest))
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		log.Println(err.Error())
-// 		return
-// 	}
-// 	u, err := models.UpdateUser(ctx, user)
-// 	if err != nil {
-// 		err := fmt.Errorf("update user: %v", err)
-// 		payload.Message = err.Error()
-// 		logger.Log(entry.New(payload, ctx, logging.Error, http.StatusInternalServerError))
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 			"detail": map[string]interface{}{
-// 				"email":       user.Email,
-// 				"phoneNumber": user.PhoneNumber,
-// 				"userName":    user.DisplayName},
-// 		})
-// 		log.Println(err.Error())
-// 		return
-// 	} else {
-// 		fmt.Printf("User successfully updated: %v\n", u.Uid)
-// 		ctx.JSON(http.StatusCreated, gin.H{
-// 			"success": "User successfully updated",
-// 			"detail": map[string]interface{}{
-// 				"email":       u.Email,
-// 				"phoneNumber": u.PhoneNumber,
-// 				"userName":    u.DisplayName},
-// 		})
-// 		payload.Message = "success"
-// 		logger.Log(entry.New(payload, ctx, logging.Debug, http.StatusOK))
-// 	}
-// }
-
-//=======================================================================================================================
-// var validate = validator.New()
-
-// func UpdateUser(ctx *gin.Context) {
-// 	var user entity.User
-
-// 	userID := ctx.Param("user_id")
-// 	if userID == "" {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "no user ID was provided"})
-// 		return
-// 	}
-
-// 	if err := ctx.BindJSON(&user); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	err := validate.Struct(user)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	if err := models.UpdateUser(userID, user); err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusOK, gin.H{"success": "user was successfully updated"})
-// }
