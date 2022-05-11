@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"firebase/models"
 	"fmt"
-	"golang-jwt/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

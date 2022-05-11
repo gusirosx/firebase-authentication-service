@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"golang-jwt/handlers"
+	"firebase/handlers"
 	"log"
 	"net/http"
 

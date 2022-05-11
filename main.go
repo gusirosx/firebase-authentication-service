@@ -1,7 +1,7 @@
 package main
 
 import (
-	"golang-jwt/routes"
+	"firebase/routes"
 )
 
 func main() {

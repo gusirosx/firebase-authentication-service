@@ -2,8 +2,8 @@ package models
 
 import (
 	"context"
+	"firebase/service"
 	"fmt"
-	"golang-jwt/service"
 	"log"
 	"time"
 
